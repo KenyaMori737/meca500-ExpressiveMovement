@@ -343,8 +343,8 @@ def main():
     print("move robot to the initial pose")
     #robot.MoveJoints(90,0,30,0,-30,0)
     #robot.MovePose(0,130,242,180,0,-180)
-    robot.MoveJoints(0,0,0,0,0,0)
-    time.sleep(5)
+    #robot.MoveJoints(0,0,0,0,0,0)
+    #time.sleep(5)
     robot.MovePose(0,130,242,180,0,-180)
     #robot.MovePose(0,-130,242,180,0,-90)
 

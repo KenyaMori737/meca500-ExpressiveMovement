@@ -21,7 +21,6 @@ use_WLS = 1;
 use_EffMassModel = 0;
 use_experiment_log = 1;
 save_exci_traj = 1;
-save_cmd_line_log_as_txt = 0;
 num_max_optim = 1;
 
 forgetting_enable = 0;
@@ -34,13 +33,6 @@ regressor_selector = "BaseRegressor";
 rpi_common_dir = "/home/pi/kenya/meca500_dev/workspace/";
 session_dir = "20241016/06_500g_propAL_seed0";
 actual_file_dir_core = "log/"+session_dir+"/";
-
-%% cmd log setting
-if save_cmd_line_log_as_txt
-    cmd_log_str = "cmd_log_"+datestr(datetime("now"),"yyyymmddhhMMss")+".txt";
-    cmd_str = "diary "+cmd_log_dir+cmd_log_str+";";
-    eval(cmd_str);
-end
 
 %% robot model setting
 [robot,~] = initialize_robot_model_rev2(robot_type, "models/", "./local_functions/", regressor_selector);
@@ -55,7 +47,7 @@ robot.rsd_p_ident = ones(1, size(robot.phib,1) )*50.0;
 %P3 = [[0 -130 242 ]/1000, [180 0 -90]*pi/180 ]; % user3
 
 check_path = "P1toP2"; %P1toP2, P3toP1
-emotion = "joy"; %joy, sad, sad2, neutral
+emotion = "sad2"; %joy, sad, sad2, neutral
 
 if check_path == "P1toP2"
     %% P1 to P2
@@ -77,6 +69,7 @@ else
     p_w_eff_y = -118.3216/1000*cos(2*pi*freq*t);
     p_w_eff_z_height = 213.7442/1000*ones(size(t,1),1);
     init_ang = [ -90, -4.8936, -7.0517, -0.0, 92.1582, 90.0]'*pi/180;
+    p_w_eff_y_ang = (10*pi/180)*sin(2*pi*2*t);
 end
 
 if emotion=="joy"
@@ -93,16 +86,16 @@ end
 
 
 % normal test condition
-%p_w_eff = [p_w_eff_x, p_w_eff_y, p_w_eff_z_height, zeros(size(t,1),1), zeros(size(t,1),1), zeros(size(t,1),1) ];
-%p_w_eff2 = [zeros(size(t,1),2),p_w_eff_z, zeros(size(t,1),1), p_w_eff_y_ang, zeros(size(t,1),1) ];
+p_w_eff = [p_w_eff_x, p_w_eff_y, p_w_eff_z_height, zeros(size(t,1),1), zeros(size(t,1),1), zeros(size(t,1),1) ];
+p_w_eff2 = [zeros(size(t,1),2),p_w_eff_z, zeros(size(t,1),1), p_w_eff_y_ang, zeros(size(t,1),1) ];
 
 % only orientation
 %p_w_eff = [zeros(size(t,1),4), p_w_eff_y_ang, zeros(size(t,1),1) ];
 %p_w_eff2 = [zeros(size(t,1),2),p_w_eff_z, zeros(size(t,1),1), p_w_eff_y_ang, zeros(size(t,1),1) ];
 
 % ***** test condition
-p_w_eff = [p_w_eff_x, p_w_eff_y, p_w_eff_z, zeros(size(t,1),1), p_w_eff_y_ang, zeros(size(t,1),1) ];
-p_w_eff2 = [zeros(size(t,1),2),p_w_eff_z, zeros(size(t,1),1), p_w_eff_y_ang, zeros(size(t,1),1) ];
+%p_w_eff = [p_w_eff_x, p_w_eff_y, p_w_eff_z, zeros(size(t,1),1), p_w_eff_y_ang, zeros(size(t,1),1) ];
+%p_w_eff2 = [zeros(size(t,1),2),p_w_eff_z, zeros(size(t,1),1), p_w_eff_y_ang, zeros(size(t,1),1) ];
 
 
 twist_v2 = gradient(p_w_eff')'/dt;
@@ -207,7 +200,7 @@ for k=1:size(t,1)
     %}
 
     %% plan4
-    selection_vec = [1,1,0,1,0,1];
+    selection_vec = [1,1,0,1,1,1];
     [dq_ref,J2,twist_w_eff_ref] = calc_dq_ref( robot, q, twist_w_eff, twist_w_eff_2, selection_vec,dt );
     
     q = q + (dq_ref + dq_ref_old)*dt*0.5;
@@ -228,6 +221,7 @@ tmp_tw = [twist_ref_v(:,1),twist_ref_v(:,2),twist_ref_v2(:,3),twist_ref_v(:,[4:6
 
 writematrix([twist_ref_v,twist_ref_v2], "./motions/motion_offline_ik_3_hw.csv");
 writematrix(tmp_tw, "./motions/motion_offline_ik_3_hw_debug.csv");
+writematrix(dq_ref_v_em, "./motions/motion_offline_ik_3_dq.csv");
 
 figure(1); hold on ;
 sgtitle("null space IK result: time series pos xyz");

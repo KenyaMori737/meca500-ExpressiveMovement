@@ -46,8 +46,8 @@ robot.rsd_p_ident = ones(1, size(robot.phib,1) )*50.0;
 %P2 = [[130  0 242 ]/1000, [180 0 -90]*pi/180 ]; % user2
 %P3 = [[0 -130 242 ]/1000, [180 0 -90]*pi/180 ]; % user3
 
-check_path = "P1toP2"; %P1toP2, P3toP1
-emotion = "sad2"; %joy, sad, sad2, neutral
+check_path = "P3toP1"; %P1toP2, P3toP1
+emotion = "sad5"; %joy, sad, sad2, neutral
 
 if check_path == "P1toP2"
     %% P1 to P2
@@ -79,11 +79,32 @@ elseif emotion=="sad"
     p_w_eff_z = p_w_eff_z_height - 0.1*t/t_max;
     %p_w_eff_y_ang = (10*pi/180)*sin(2*pi*1*t);
 elseif emotion=="sad2"
-    p_w_eff_z = p_w_eff_z_height + abs( (100/1000)*sinc(2*pi*freq*3*t)) - (100/1000);
+    p_w_eff_z = p_w_eff_z_height + abs( (50/1000)*sinc(2*pi*freq*3*t)) - (50/1000);
 elseif emotion=="neutral"
     p_w_eff_z = p_w_eff_z_height;
+elseif emotion=="sad3" % sin - kt/t_max
+    p_w_eff_z = p_w_eff_z_height -(15/1000)+ abs( (15/1000)*cos(2*pi*freq*t)) + (-30/1000)*t/t_max;
+elseif emotion=="sad4" % abs(cos) - kt/t_max
+    p_w_eff_z = p_w_eff_z_height -(15/1000)+ abs( (15/1000)*cos(2*pi*freq*4*t)) + (-30/1000)*t/t_max;
+elseif emotion=="sad5" % abs(cos).*exp(-v*t/t_max) - kt/t_max
+    p_w_eff_z = p_w_eff_z_height -(20/1000)+ abs( (20/1000)*cos(2*pi*freq*4*t)).*exp(-3*t/t_max) + (-30/1000)*t/t_max;
+elseif emotion=="sad6" %step
+    %p_w_eff_z = p_w_eff_z_height + abs( (50/1000)*sinc(2*pi*freq*3*t)) - (50/1000);
+    p_w_eff_z = zeros(size(t));
+    size_t = size(p_w_eff_z,1);
+    delta_z = 15;
+    for i=2:size_t
+        if i<size_t/4
+            p_w_eff_z(i) = p_w_eff_z_height(1) - delta_z;
+        elseif and( size_t/4<=i , i<2*size_t/4)
+            p_w_eff_z(i) = p_w_eff_z_height(1) - 2*delta_z;
+        elseif and(2*size_t/4<=i,i<3*size_t/4)
+            p_w_eff_z(i) = p_w_eff_z_height(1) - 3*delta_z;
+        elseif i>=3*size_t/4
+            p_w_eff_z(i) = p_w_eff_z_height(1) - 4*delta_z;
+        end
+    end
 end
-
 
 % normal test condition
 p_w_eff = [p_w_eff_x, p_w_eff_y, p_w_eff_z_height, zeros(size(t,1),1), zeros(size(t,1),1), zeros(size(t,1),1) ];
